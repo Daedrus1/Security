@@ -2,8 +2,8 @@ package mate.academy.security.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-
 import java.lang.reflect.Field;
+import java.util.Objects;
 
 public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Object> {
     private String first;
@@ -24,11 +24,9 @@ public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Obje
             f2.setAccessible(true);
             Object v1 = f1.get(value);
             Object v2 = f2.get(value);
-            return (v1 == null && v2 == null) || (v1 != null && v1.equals(v2));
+            return Objects.equals(v1, v2);
         } catch (Exception e) {
             return false;
         }
     }
 }
-
-
