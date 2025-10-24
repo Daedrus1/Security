@@ -9,8 +9,10 @@ import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import javax.management.relation.Role;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users")
@@ -35,6 +37,7 @@ public class User implements UserDetails {
     private String shippingAddress;
     @Column(name = "is_deleted")
     private boolean isDeleted;
+    private Set<Role> roles;
 
     @Override
     public String getPassword() {
