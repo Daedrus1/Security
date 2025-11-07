@@ -4,7 +4,6 @@ import mate.academy.security.dto.UserRegistrationRequestDto;
 import mate.academy.security.dto.UserResponseDto;
 import mate.academy.security.model.User;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
