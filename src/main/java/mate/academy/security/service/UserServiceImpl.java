@@ -7,6 +7,7 @@ import mate.academy.security.exception.RegistrationException;
 import mate.academy.security.mapper.UserMapper;
 import mate.academy.security.model.User;
 import mate.academy.security.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserResponseDto register(UserRegistrationRequestDto userRegistrationRequestDto) throws RegistrationException {
@@ -23,7 +25,7 @@ public class UserServiceImpl implements UserService {
         }
         User user = new User();
         user.setEmail(userRegistrationRequestDto.getEmail());
-        user.setPassword(userRegistrationRequestDto.getPassword());
+        user.setPassword(passwordEncoder.encode(userRegistrationRequestDto.getPassword()));
         user.setFirstName(userRegistrationRequestDto.getFirstName());
         user.setLastName(userRegistrationRequestDto.getLastName());
         user.setShippingAddress(userRegistrationRequestDto.getShippingAddress());
