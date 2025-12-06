@@ -1,6 +1,8 @@
 package mate.academy.security.model;
 
 import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -26,5 +28,11 @@ public class Book {
     private BigDecimal price;
     @Column(unique = true)
     private String isbn;
-
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "book_category",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id"))
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Category> categories = new HashSet<>();
     }

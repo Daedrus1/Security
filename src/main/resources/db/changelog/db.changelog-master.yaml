@@ -11,3 +11,8 @@ databaseChangeLog:
       file: db/changelog/0004-create-roles-table.yml
   - include:
       file: db/changelog/0005-create-users-roles-table.yml
+  - include:
+      file: db/changelog/0006-create-category-table.yaml
+  - include:
+      file: db/changelog/0007-create-book-category-table.yaml
+
