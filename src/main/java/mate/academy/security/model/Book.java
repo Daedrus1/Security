@@ -28,8 +28,8 @@ public class Book {
     private BigDecimal price;
     @Column(unique = true)
     private String isbn;
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "book_category",
+    @ManyToMany
+    @JoinTable(name = "books_categories",
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id"))
     @ToString.Exclude

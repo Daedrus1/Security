@@ -1,20 +1,24 @@
 package mate.academy.security.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.BookDtoWithoutCategoryIds;
 import mate.academy.security.dto.CategoryDto;
+import mate.academy.security.dto.CategoryRequestDto;
 import mate.academy.security.service.CategoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/controllers")
+@RequestMapping("categories")
 @RequiredArgsConstructor
+@Tag(name = "Categories", description = "Endpoints for managing book categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
@@ -32,14 +36,15 @@ public class CategoryController {
 
     @Operation(summary = "Create category")
     @PostMapping
-    public CategoryDto createCategory(@RequestBody @Valid CategoryDto categoryDto) {
-        return categoryService.save(categoryDto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public CategoryDto createCategory(@RequestBody @Valid CategoryRequestDto categoryRequestDto) {
+        return categoryService.save(categoryRequestDto);
     }
 
     @Operation(summary = "Update category")
     @PutMapping("/{id}")
-    public CategoryDto updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryDto categoryDto) {
-        return categoryService.update(id, categoryDto);
+    public CategoryDto updateCategory(@PathVariable Long id, @RequestBody @Valid CategoryRequestDto categoryRequestDto) {
+        return categoryService.update(id, categoryRequestDto);
     }
 
     @Operation(summary = "Delete category")

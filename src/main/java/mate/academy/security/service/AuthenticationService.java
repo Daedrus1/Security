@@ -1,5 +1,6 @@
 package mate.academy.security.service;
 
+import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.UserLoginRequestDto;
 import mate.academy.security.dto.UserLoginResponseDto;
 import mate.academy.security.dto.UserResponseDto;
@@ -11,12 +12,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class AuthenticationService {
 
-    @Autowired
-    private JwtUtil jwtUtil;
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
     public UserLoginResponseDto authenticate(UserLoginRequestDto userLoginRequestDto) {
         final Authentication authentication = authenticationManager.authenticate(

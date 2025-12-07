@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.BookDtoWithoutCategoryIds;
 import mate.academy.security.dto.CategoryDto;
+import mate.academy.security.dto.CategoryRequestDto;
 import mate.academy.security.mapper.BookMapper;
 import mate.academy.security.mapper.CategoryMapper;
 
@@ -30,29 +31,33 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryDto getById(Long id) {
-
-        return categoryMapper.toDto(categoryRepository.findById(id).orElse(null));
+        var category = categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found, id=" + id));
+        return categoryMapper.toDto(category);
     }
 
     @Override
-    public CategoryDto save(CategoryDto dto) {
-
-        return categoryMapper.toDto(categoryRepository.save(categoryMapper.toEntity(dto)));
+    public CategoryDto save(CategoryRequestDto categoryRequestDto) {
+        return categoryMapper.toDto(categoryRepository.save(categoryMapper.toEntity(categoryRequestDto)));
     }
 
     @Override
-    public CategoryDto update(Long id, CategoryDto dto) {
-        return categoryMapper.toDto(categoryRepository.findById(id).orElse(null));
+    public CategoryDto update(Long id, CategoryRequestDto categoryRequestDto) {
+        var category = categoryRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Category not found, id=" + id));
+
+        category.setName(categoryRequestDto.getName());
+        category.setDescription(categoryRequestDto.getDescription());
+
+        return categoryMapper.toDto(categoryRepository.save(category));
     }
 
     @Override
     public void deleteById(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new EntityNotFoundException("Category with id " + id + " not found");
-
         }
         categoryRepository.deleteById(id);
-
     }
 
     @Override
