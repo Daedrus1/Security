@@ -1,6 +1,6 @@
 package mate.academy.security.config;
 
-import mate.academy.security.service.JwtAuthenticationFilter;
+import mate.academy.security.security.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // публичные эндпоинты
                         .requestMatchers(
-                                "/auth/register",
+                                "/auth/registration",
                                 "/auth/login",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"

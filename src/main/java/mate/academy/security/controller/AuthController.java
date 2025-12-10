@@ -9,7 +9,7 @@ import mate.academy.security.dto.UserLoginResponseDto;
 import mate.academy.security.dto.UserRegistrationRequestDto;
 import mate.academy.security.dto.UserResponseDto;
 import mate.academy.security.exception.RegistrationException;
-import mate.academy.security.service.AuthenticationService;
+import mate.academy.security.security.AuthenticationService;
 import mate.academy.security.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

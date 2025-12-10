@@ -1,4 +1,4 @@
-package mate.academy.security.service;
+package mate.academy.security.security;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.AllArgsConstructor;
-import mate.academy.security.security.JwtUtil;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -32,8 +31,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String token = getToken(request);
         boolean isTokenValid = jwtUtil.isValid(token);
-        if (token != null && jwtUtil.isValid(token)) {
-String username = jwtUtil.getUserName(token);
+
+        if (token != null && isTokenValid) {
+            String username = jwtUtil.getUserName(token);
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             Authentication authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
