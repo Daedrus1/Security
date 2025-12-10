@@ -33,20 +33,26 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // публичные эндпоинты
                         .requestMatchers(
-                                "/auth/register",
+                                "/auth/registration",
                                 "/auth/login",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/api/cart/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/api/cart/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/api/cart/items/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cart/items/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/api/cart/**").hasRole("USER")
+
                         .requestMatchers(HttpMethod.POST, "/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,  "/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
-                );
+                )
+                .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
