@@ -1,5 +1,6 @@
 package mate.academy.security.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.UserLoginRequestDto;
@@ -22,11 +23,19 @@ public class AuthController {
     private final AuthenticationService authenticationService;
 
     @PostMapping("/registration")
+    @Operation(
+            summary = "Register a new user",
+            description = "Creates a new user account if the email is not already registered"
+    )
     public UserResponseDto registerUser(@RequestBody @Valid UserRegistrationRequestDto userRegistrationRequestDto) throws RegistrationException {
         return userService.register(userRegistrationRequestDto);
     }
 
     @PostMapping("/login")
+    @Operation(
+            summary = "Login user",
+            description = "Authenticates a user using email and password"
+    )
     public UserLoginResponseDto login(@Valid @RequestBody UserLoginRequestDto request) {
         return authenticationService.authenticate(request);
     }
