@@ -1,6 +1,8 @@
 package mate.academy.security.dto;
 
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import lombok.Data;
 import java.math.BigDecimal;
 
@@ -12,4 +14,6 @@ public class BookRequestDto {
     @NotNull
     private BigDecimal price;
     private String isbn;
+    @NotEmpty
+    private List<Long> categoryIds;
 }
