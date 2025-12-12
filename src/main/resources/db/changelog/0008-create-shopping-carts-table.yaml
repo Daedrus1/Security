@@ -1,0 +1,33 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/db.changelog/0008-create-shopping-carts-table.yaml
+
+  - changeSet:
+      id: 0008-create-shopping-carts-table
+      author: pavlo
+      preConditions:
+        - onFail: HALT
+        - tableExists:
+            tableName: users
+      changes:
+        - createTable:
+            tableName: shopping_carts
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_shopping_carts
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+                    unique: true
+        - addForeignKeyConstraint:
+            baseTableName: shopping_carts
+            baseColumnNames: user_id
+            constraintName: fk_shopping_cart_user
+            referencedTableName: users
+            referencedColumnNames: id
