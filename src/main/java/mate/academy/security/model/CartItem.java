@@ -14,8 +14,6 @@ import lombok.*;
 )
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class CartItem {
 
@@ -34,8 +32,6 @@ public class CartItem {
             foreignKey = @ForeignKey(name = "fk_cart_item_book"))
     private Book book;
 
-    @NotNull
-    @Min(1)
     @Column(nullable = false)
-    private Integer quantity;
+    private int quantity;
 }

@@ -8,10 +8,12 @@ import mate.academy.security.dto.CartItemRequestDto;
 import mate.academy.security.dto.ShoppingCartDto;
 import mate.academy.security.service.ShoppingCartService;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/cart")
 @RequiredArgsConstructor
 @Tag(name = "Carts", description = "Endpoints for managing Shopping Carts")
 public class ShoppingCartController {
@@ -19,18 +21,22 @@ public class ShoppingCartController {
 
     @GetMapping
     @Operation(summary = "Get current user's shopping cart")
-    public ShoppingCartDto getShoppingCart(@RequestParam Long userId) {
-        return shoppingCartService.getShoppingCart(userId);
+    public ShoppingCartDto getShoppingCart(Authentication authentication) {
+        UserDetails user = (UserDetails) authentication.getPrincipal();
+        String userEmail = user.getUsername();
+        return shoppingCartService.getShoppingCart(userEmail);
     }
 
     @PostMapping
     @Operation(summary = "Add a book to the user's shopping cart")
     @ResponseStatus(HttpStatus.CREATED)
     public ShoppingCartDto addItem(
-            @RequestParam Long userId,
+            Authentication authentication,
             @Valid @RequestBody CartItemRequestDto requestDto
     ) {
-        return shoppingCartService.addItemToCart(userId, requestDto);
+        UserDetails user = (UserDetails) authentication.getPrincipal();
+        String userEmail = user.getUsername();
+        return shoppingCartService.addItemToCart(userEmail, requestDto);
     }
 
     @DeleteMapping
@@ -39,4 +45,5 @@ public class ShoppingCartController {
     public void clear(@RequestParam Long userId) {
         shoppingCartService.clearCart(userId);
     }
+
 }

@@ -5,9 +5,13 @@ import mate.academy.security.dto.ShoppingCartDto;
 
 public interface ShoppingCartService {
 
-    ShoppingCartDto getShoppingCart(Long userId);
+    ShoppingCartDto getShoppingCart(String userEmail);
 
-    ShoppingCartDto addItemToCart(Long userId, CartItemRequestDto cartItemRequestDto);
+    ShoppingCartDto addItemToCart(String userEmail, CartItemRequestDto cartItemRequestDto);
 
     void clearCart(Long userId);
+
+    ShoppingCartDto updateQuantity(Long userId, Long cartItemId, int quantity);
+
+    void deleteItem(Long userId, Long cartItemId);
 }
