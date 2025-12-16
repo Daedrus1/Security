@@ -50,14 +50,6 @@ public class ShoppingCartController {
         return shoppingCartService.addItemToCart(user.getId(), requestDto);
     }
 
-    @DeleteMapping
-    @Operation(summary = "Clear all items from the shopping cart")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void clear(Authentication authentication) {
-        User user = (User) authentication.getPrincipal();
-        shoppingCartService.clearCart(user.getId());
-    }
-
     @Operation(summary = "Update the quantity of a specific cart item")
     @PutMapping("/{cartItemId}")
     public ShoppingCartDto updateQuantity(Authentication authentication,
