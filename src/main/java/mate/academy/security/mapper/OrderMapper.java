@@ -7,7 +7,7 @@ import mate.academy.security.model.Order;
 import mate.academy.security.model.OrderItem;
 import org.mapstruct.Mapper;
 
-@Mapper(componentModel = "string")
+@Mapper(componentModel = "spring")
 public interface OrderMapper {
     OrderDto toDto(Order order);
 
