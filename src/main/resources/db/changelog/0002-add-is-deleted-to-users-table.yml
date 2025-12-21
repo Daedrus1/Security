@@ -8,8 +8,8 @@ databaseChangeLog:
             columns:
               - column:
                   name: is_deleted
-                  type: BOOLEAN
-                  defaultValueBoolean: false
+                  type: TINYINT
+                  defaultValueNumeric: 0
                   constraints:
                     nullable: false
       rollback:
