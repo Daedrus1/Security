@@ -4,17 +4,15 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import lombok.*;
 import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
 import org.hibernate.annotations.Where;
 
 @Entity
 @Table(name = "order_items")
-@NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
-@Builder
 @SQLDelete(sql = "UPDATE order_items SET is_deleted = true WHERE id = ?")
-@Where(clause = "is_deleted = false")
+@SQLRestriction("is_deleted = false")
 public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.CreateOrderRequestDto;
 import mate.academy.security.dto.OrderDto;
 import mate.academy.security.dto.UpdateOrderStatusRequestDto;
+import mate.academy.security.exception.OrderProcessingException;
 import mate.academy.security.mapper.OrderMapper;
 import mate.academy.security.model.*;
 import mate.academy.security.repository.*;
@@ -30,7 +31,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
 
     @Override
-    public OrderDto placeOrder(CreateOrderRequestDto requestDto) {
+    public OrderDto placeOrder(CreateOrderRequestDto requestDto) throws OrderProcessingException {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
 
@@ -42,7 +43,7 @@ public class OrderServiceImpl implements OrderService {
 
         Set<CartItem> cartItems = shoppingCart.getCartItems();
         if (cartItems == null || cartItems.isEmpty()) {
-            throw new RuntimeException("Shopping cart is empty");
+            throw new OrderProcessingException("Shopping cart is empty");
         }
 
         Order order = new Order();

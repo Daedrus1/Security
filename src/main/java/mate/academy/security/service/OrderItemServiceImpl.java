@@ -1,5 +1,6 @@
 package mate.academy.security.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -28,14 +29,13 @@ public class OrderItemServiceImpl implements OrderItemService {
     public List<OrderItemDto> getItems(Long orderId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User not found with email: " + email
+                ));
 
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
-        if (!order.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Access denied");
-        }
 
         List<OrderItemDto> result = new ArrayList<>();
         for (OrderItem orderItem : order.getOrderItems()) {
