@@ -1,6 +1,9 @@
 package mate.academy.security.repository;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import java.math.BigDecimal;
+import java.util.Optional;
 import mate.academy.security.model.Book;
 import mate.academy.security.model.Category;
 import org.junit.jupiter.api.Test;
@@ -26,6 +29,17 @@ public class BookRepositoryTest {
         book.setTitle("Book Title");
         book.setAuthor("Author");
         book.setPrice(BigDecimal.valueOf(100));
+        book.getCategories().add(savedCategory);
+
+        Book savedBook = bookRepository.save(book);
+        Optional<Book> found = bookRepository.findById(savedBook.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getTitle()).isEqualTo("Book Title");
+        assertThat(found.get().getAuthor()).isEqualTo("Author");
+        assertThat(found.get().getPrice()).isEqualTo(BigDecimal.valueOf(100));
+        assertThat(found.get().getCategories()).hasSize(1);
+        assertThat(found.get().getCategories().iterator().next().getName()).isEqualTo("cat-for-book");
 
     }
 }
