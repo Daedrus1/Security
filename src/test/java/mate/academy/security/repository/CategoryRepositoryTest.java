@@ -32,7 +32,7 @@ class CategoryRepositoryTest {
     @Test
     void deleteById_shouldSoftDelete_andNotBeFound() {
         Category category = new Category();
-        category.setName("test-delete"); // другое имя!
+        category.setName("test-delete");
 
         Category saved = categoryRepository.save(category);
         Long id = saved.getId();

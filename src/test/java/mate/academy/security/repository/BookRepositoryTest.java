@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import mate.academy.security.model.Book;
 import mate.academy.security.model.Category;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -20,7 +21,7 @@ public class BookRepositoryTest {
     private CategoryRepository categoryRepository;
 
     @Test
-    void saveAndFindById_shouldWork(){
+    void saveAndFindById_shouldWork() {
         Category category = new Category();
         category.setName("cat-for-book");
         Category savedCategory = categoryRepository.save(category);
@@ -42,4 +43,4 @@ public class BookRepositoryTest {
         assertThat(found.get().getCategories().iterator().next().getName()).isEqualTo("cat-for-book");
 
     }
-}
+    }
