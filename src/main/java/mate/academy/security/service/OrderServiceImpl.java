@@ -1,12 +1,16 @@
 package mate.academy.security.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.CreateOrderRequestDto;
 import mate.academy.security.dto.OrderDto;
+import mate.academy.security.dto.OrderItemDto;
 import mate.academy.security.dto.UpdateOrderStatusRequestDto;
 import mate.academy.security.exception.OrderProcessingException;
 import mate.academy.security.mapper.OrderMapper;
@@ -23,12 +27,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OrderServiceImpl implements OrderService {
+public class OrderServiceImpl implements OrderService, OrderItemService {
     private final OrderRepository orderRepository;
     private final ShoppingCartRepository shoppingCartRepository;
     private final CartItemRepository cartItemRepository;
     private final OrderMapper orderMapper;
     private final UserRepository userRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Override
     public OrderDto placeOrder(CreateOrderRequestDto requestDto) throws OrderProcessingException {
@@ -94,4 +99,43 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(requestDto.getStatus());
         return orderMapper.toDto(orderRepository.save(order));
     }
+    @Override
+    public List<OrderItemDto> getItems(Long orderId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new EntityNotFoundException(
+                        "User not found with email: " + email
+                ));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+
+        List<OrderItemDto> result = new ArrayList<>();
+        for (OrderItem orderItem : order.getOrderItems()) {
+            result.add(orderMapper.toItemDto(orderItem));
+        }
+        return result;
+    }
+
+    @Override
+    public OrderItemDto getItem(Long orderId, Long itemId) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+
+        if (!order.getUser().getId().equals(user.getId())) {
+            throw new RuntimeException("Access denied");
+        }
+
+        OrderItem orderItem = orderItemRepository.findByIdAndOrderId(itemId, orderId)
+                .orElseThrow(() -> new RuntimeException(
+                        "Order item not found: " + itemId + " for order: " + orderId));
+
+        return orderMapper.toItemDto(orderItem);
+    }
+
 }
