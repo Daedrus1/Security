@@ -10,7 +10,6 @@ import mate.academy.security.dto.OrderDto;
 import mate.academy.security.dto.OrderItemDto;
 import mate.academy.security.dto.UpdateOrderStatusRequestDto;
 import mate.academy.security.exception.OrderProcessingException;
-import mate.academy.security.service.OrderItemService;
 import mate.academy.security.service.OrderService;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Orders", description = "Order management endpoints")
 public class OrderController {
     private final OrderService orderService;
-    private final OrderItemService orderItemService;
 
 
     @PostMapping
@@ -51,13 +49,13 @@ public class OrderController {
     @GetMapping("/{orderId}/items")
     @Operation(summary = "Get all order items for a specific order")
     public List<OrderItemDto> getItems(@PathVariable Long orderId) {
-        return orderItemService.getItems(orderId);
+        return orderService.getItems(orderId);
     }
 
     @GetMapping("/{orderId}/items/{itemId}")
     @Operation(summary = "Get a specific order item within an order")
     public OrderItemDto getItem(@PathVariable Long orderId,
                                 @PathVariable Long itemId) {
-        return orderItemService.getItem(orderId, itemId);
+        return orderService.getItem(orderId, itemId);
     }
 }

@@ -27,7 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class OrderServiceImpl implements OrderService, OrderItemService {
+public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ShoppingCartRepository shoppingCartRepository;
     private final CartItemRepository cartItemRepository;
@@ -88,14 +88,14 @@ public class OrderServiceImpl implements OrderService, OrderItemService {
     public Page<OrderDto> getMyOrders(Pageable pageable) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + email));
         return orderRepository.findAllByUserId(user.getId(), pageable).map(orderMapper::toDto);
     }
 
     @Override
     public OrderDto updateStatus(Long orderId, UpdateOrderStatusRequestDto requestDto) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
         order.setStatus(requestDto.getStatus());
         return orderMapper.toDto(orderRepository.save(order));
     }
@@ -108,7 +108,7 @@ public class OrderServiceImpl implements OrderService, OrderItemService {
                 ));
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found"));
 
 
         List<OrderItemDto> result = new ArrayList<>();
@@ -122,17 +122,17 @@ public class OrderServiceImpl implements OrderService, OrderItemService {
     public OrderItemDto getItem(Long orderId, Long itemId) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found: " + email));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + email));
 
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
+                .orElseThrow(() -> new EntityNotFoundException("Order not found: " + orderId));
 
         if (!order.getUser().getId().equals(user.getId())) {
             throw new RuntimeException("Access denied");
         }
 
         OrderItem orderItem = orderItemRepository.findByIdAndOrderId(itemId, orderId)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new EntityNotFoundException(
                         "Order item not found: " + itemId + " for order: " + orderId));
 
         return orderMapper.toItemDto(orderItem);
