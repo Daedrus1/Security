@@ -1,6 +1,7 @@
 package mate.academy.security.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
 import mate.academy.security.dto.BookDtoWithoutCategoryIds;
 import mate.academy.security.dto.CategoryDto;
 import mate.academy.security.dto.CategoryRequestDto;
@@ -10,13 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.data.domain.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.List;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -26,30 +28,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc(addFilters = false)
 class CategoryControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    @Autowired private MockMvc mockMvc;
+    @Autowired private ObjectMapper objectMapper;
 
-    @Autowired
-    private ObjectMapper objectMapper;
-
-    @MockitoBean
-    private CategoryService categoryService;
-
-    @MockitoBean
-    private mate.academy.security.security.JwtUtil jwtUtil;
+    @MockitoBean private CategoryService categoryService;
+    @MockitoBean private mate.academy.security.security.JwtUtil jwtUtil;
 
     @Test
-    @DisplayName("GET /categories -> returns page of categories")
+    @DisplayName("GET /categories — 200 и страница категорий")
     void getAllCategories_ok() throws Exception {
-        CategoryDto dto1 = categoryDto(1L, "Fiction", "Desc1");
-        CategoryDto dto2 = categoryDto(2L, "Drama", "Desc2");
-
-        Page<CategoryDto> page = new PageImpl<>(
-                List.of(dto1, dto2),
-                PageRequest.of(0, 20, Sort.by("id")),
-                2
-        );
-
+        CategoryDto c1 = categoryDto(1L, "Fiction", "Desc1");
+        CategoryDto c2 = categoryDto(2L, "Drama", "Desc2");
+        Page<CategoryDto> page = new PageImpl<>(List.of(c1, c2), PageRequest.of(0, 20, Sort.by("id").ascending()), 2);
         when(categoryService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/categories")
@@ -68,7 +58,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("GET /categories/{id} -> returns category")
+    @DisplayName("GET /categories/{id} — 200 и категория")
     void getCategoryById_ok() throws Exception {
         when(categoryService.getById(1L)).thenReturn(categoryDto(1L, "Fiction", "Desc"));
 
@@ -83,16 +73,15 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("POST /categories -> creates category and returns 201")
-    void createCategory_ok() throws Exception {
-        CategoryRequestDto request = categoryRequestDto("New", "New desc");
+    @DisplayName("POST /categories — 201 и созданная категория")
+    void createCategory_created() throws Exception {
+        CategoryRequestDto req = categoryRequestDto("New", "New desc");
         CategoryDto saved = categoryDto(10L, "New", "New desc");
-
         when(categoryService.save(any(CategoryRequestDto.class))).thenReturn(saved);
 
         mockMvc.perform(post("/categories")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(10))
@@ -103,16 +92,15 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("PUT /categories/{id} -> updates category")
+    @DisplayName("PUT /categories/{id} — 200 и обновлённая категория")
     void updateCategory_ok() throws Exception {
-        CategoryRequestDto request = categoryRequestDto("Updated", "Upd desc");
+        CategoryRequestDto req = categoryRequestDto("Updated", "Upd desc");
         CategoryDto updated = categoryDto(1L, "Updated", "Upd desc");
-
         when(categoryService.update(eq(1L), any(CategoryRequestDto.class))).thenReturn(updated);
 
         mockMvc.perform(put("/categories/{id}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(1))
@@ -123,7 +111,7 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("DELETE /categories/{id} -> deletes category")
+    @DisplayName("DELETE /categories/{id} — 200")
     void deleteCategory_ok() throws Exception {
         doNothing().when(categoryService).deleteById(1L);
 
@@ -134,15 +122,10 @@ class CategoryControllerTest {
     }
 
     @Test
-    @DisplayName("GET /categories/{id}/books -> returns books page")
+    @DisplayName("GET /categories/{id}/books — 200 и страница книг")
     void getBooksByCategoryId_ok() throws Exception {
-        BookDtoWithoutCategoryIds book = bookDtoWithoutCategoryIds(5L, "Title", "Author", "isbn", "desc");
-        Page<BookDtoWithoutCategoryIds> page = new PageImpl<>(
-                List.of(book),
-                PageRequest.of(0, 20),
-                1
-        );
-
+        BookDtoWithoutCategoryIds b = bookDtoWithoutCategoryIds(5L, "Title", "Author", "isbn", "desc");
+        Page<BookDtoWithoutCategoryIds> page = new PageImpl<>(List.of(b), PageRequest.of(0, 20), 1);
         when(categoryService.getBooksByCategoryId(eq(1L), any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/categories/{id}/books", 1L)
@@ -156,7 +139,6 @@ class CategoryControllerTest {
 
         verify(categoryService).getBooksByCategoryId(eq(1L), any(Pageable.class));
     }
-
 
     private CategoryDto categoryDto(Long id, String name, String description) {
         CategoryDto dto = new CategoryDto();
@@ -173,9 +155,7 @@ class CategoryControllerTest {
         return dto;
     }
 
-    private BookDtoWithoutCategoryIds bookDtoWithoutCategoryIds(
-            Long id, String title, String author, String isbn, String description
-    ) {
+    private BookDtoWithoutCategoryIds bookDtoWithoutCategoryIds(Long id, String title, String author, String isbn, String description) {
         BookDtoWithoutCategoryIds dto = new BookDtoWithoutCategoryIds();
         dto.setId(id);
         dto.setTitle(title);
