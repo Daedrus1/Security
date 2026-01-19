@@ -68,14 +68,15 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String responseJson = mvcResult.getResponse().getContentAsString();
-        BookDto actual = objectMapper.readValue(responseJson, BookDto.class);
+        BookDto actual = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), BookDto.class);
 
         BookDto expected = new BookDto();
         expected.setTitle("Book Title");
         expected.setAuthor("Author");
+        expected.setDescription(null);
+        expected.setIsbn(null);
         expected.setPrice(new BigDecimal("10.50"));
-
+        expected.setCategoryIds(List.of());
 
         assertNotNull(actual.getId());
 
@@ -84,6 +85,7 @@ class BookControllerTest {
 
         assertEquals(expected, actual);
     }
+
 
     @Test
     @WithMockUser(roles = "ADMIN")
