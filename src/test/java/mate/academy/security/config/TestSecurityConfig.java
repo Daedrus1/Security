@@ -7,7 +7,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 
 @TestConfiguration
-@EnableMethodSecurity(prePostEnabled = false) // отключаем @PreAuthorize
+@EnableMethodSecurity(prePostEnabled = false)
 public class TestSecurityConfig {
 
     @Bean

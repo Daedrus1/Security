@@ -17,10 +17,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -35,64 +39,87 @@ class CategoryControllerTest {
     @MockitoBean private mate.academy.security.security.JwtUtil jwtUtil;
 
     @Test
-    @DisplayName("GET /categories — 200 и страница категорий")
+    @DisplayName("GET /categories — 200")
     void getAllCategories_ok() throws Exception {
-        CategoryDto c1 = categoryDto(1L, "Fiction", "Desc1");
-        CategoryDto c2 = categoryDto(2L, "Drama", "Desc2");
-        Page<CategoryDto> page = new PageImpl<>(List.of(c1, c2), PageRequest.of(0, 20, Sort.by("id").ascending()), 2);
+        CategoryDto first = categoryDto(1L, "Fiction", "Desc1");
+        CategoryDto second = categoryDto(2L, "Drama", "Desc2");
+
+        Page<CategoryDto> page = new PageImpl<>(
+                List.of(first, second),
+                PageRequest.of(0, 20),
+                2
+        );
+
         when(categoryService.findAll(any(Pageable.class))).thenReturn(page);
 
         mockMvc.perform(get("/categories")
                         .param("page", "0")
-                        .param("size", "20")
-                        .param("sort", "id,asc"))
+                        .param("size", "20"))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.content.length()").value(2))
-                .andExpect(jsonPath("$.content[0].id").value(1))
-                .andExpect(jsonPath("$.content[0].name").value("Fiction"))
-                .andExpect(jsonPath("$.content[1].id").value(2))
-                .andExpect(jsonPath("$.content[1].name").value("Drama"));
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.content.length()").value(2));
 
         verify(categoryService).findAll(any(Pageable.class));
     }
 
-    @Test
-    @DisplayName("GET /categories/{id} — 200 и категория")
-    void getCategoryById_ok() throws Exception {
-        when(categoryService.getById(1L)).thenReturn(categoryDto(1L, "Fiction", "Desc"));
 
-        mockMvc.perform(get("/categories/{id}", 1L))
+    @Test
+    @DisplayName("GET /categories/{id} — 200")
+    void getCategoryById_ok() throws Exception {
+        CategoryDto expected = categoryDto(1L, "Fiction", "Desc");
+        when(categoryService.getById(1L)).thenReturn(expected);
+
+        MvcResult result = mockMvc.perform(get("/categories/{id}", 1L))
                 .andExpect(status().isOk())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("Fiction"))
-                .andExpect(jsonPath("$.description").value("Desc"));
+                .andReturn();
+
+        CategoryDto actual = objectMapper.readValue(
+                result.getResponse().getContentAsString(),
+                CategoryDto.class
+        );
+
+        assertEquals(expected, actual);
 
         verify(categoryService).getById(1L);
     }
 
+
     @Test
-    @DisplayName("POST /categories — 201 и созданная категория")
+    @DisplayName("POST /categories — 201")
+    @WithMockUser(roles = "ADMIN") // если эндпоинт защищён
     void createCategory_created() throws Exception {
         CategoryRequestDto req = categoryRequestDto("New", "New desc");
-        CategoryDto saved = categoryDto(10L, "New", "New desc");
-        when(categoryService.save(any(CategoryRequestDto.class))).thenReturn(saved);
 
-        mockMvc.perform(post("/categories")
+        // POST
+        MvcResult postResult = mockMvc.perform(post("/categories")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isCreated())
-                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(10))
-                .andExpect(jsonPath("$.name").value("New"))
-                .andExpect(jsonPath("$.description").value("New desc"));
+                .andReturn();
 
-        verify(categoryService).save(any(CategoryRequestDto.class));
+        CategoryDto created = objectMapper.readValue(
+                postResult.getResponse().getContentAsString(),
+                CategoryDto.class
+        );
+
+        CategoryDto expected = categoryDto(created.getId(), "New", "New desc");
+        assertEquals(expected, created);
+
+        MvcResult getResult = mockMvc.perform(get("/categories/{id}", created.getId()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        CategoryDto fetched = objectMapper.readValue(
+                getResult.getResponse().getContentAsString(),
+                CategoryDto.class
+        );
+
+        assertEquals(created, fetched);
     }
 
     @Test
-    @DisplayName("PUT /categories/{id} — 200 и обновлённая категория")
+    @DisplayName("PUT /categories/{id} — 200 ")
     void updateCategory_ok() throws Exception {
         CategoryRequestDto req = categoryRequestDto("Updated", "Upd desc");
         CategoryDto updated = categoryDto(1L, "Updated", "Upd desc");

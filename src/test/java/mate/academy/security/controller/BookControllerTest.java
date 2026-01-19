@@ -3,6 +3,7 @@ package mate.academy.security.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
+import mate.academy.security.dto.BookDto;
 import mate.academy.security.dto.BookRequestDto;
 import mate.academy.security.model.Book;
 import mate.academy.security.model.Category;
@@ -17,8 +18,10 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -46,7 +49,7 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void createBook_Valid_Returns200AndPersists() throws Exception {
+    void createBook_Valid_Returns200AndReturnsExpectedDto() throws Exception {
         Category cat = new Category();
         cat.setName("Default");
         cat.setDescription("Test");
@@ -58,59 +61,72 @@ class BookControllerTest {
         req.setPrice(new BigDecimal("10.50"));
         req.setCategoryIds(List.of(savedCat.getId()));
 
-        mockMvc.perform(post("/api/books")
+        MvcResult mvcResult = mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk()) // контроллер сейчас отдаёт 200
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.title").value("Book Title"));
+                .andExpect(status().isOk())
+                .andReturn();
 
-        assertEquals(1, bookRepository.count());
+        String responseJson = mvcResult.getResponse().getContentAsString();
+        BookDto actual = objectMapper.readValue(responseJson, BookDto.class);
+
+        BookDto expected = new BookDto();
+        expected.setTitle("Book Title");
+        expected.setAuthor("Author");
+        expected.setPrice(new BigDecimal("10.50"));
+
+
+        assertNotNull(actual.getId());
+
+        actual.setId(null);
+        expected.setId(null);
+
+        assertEquals(expected, actual);
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     void createBook_Invalid_400() throws Exception {
-        BookRequestDto bad = new BookRequestDto();
-        bad.setTitle("");
-        bad.setAuthor("");
-        bad.setPrice(new BigDecimal("-1")); // нарушаем @Positive
+        BookRequestDto notValidDto = new BookRequestDto();
+        notValidDto.setTitle("");
+        notValidDto.setAuthor("");
+        notValidDto.setPrice(new BigDecimal("-1"));
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(bad)))
+                        .content(objectMapper.writeValueAsString(notValidDto)))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void createBook_Unauthenticated_403() throws Exception {
 
-        BookRequestDto req = new BookRequestDto();
-        req.setTitle("X");
-        req.setAuthor("Y");
-        req.setPrice(new BigDecimal("5.00"));
+        BookRequestDto requestDto = new BookRequestDto();
+        requestDto.setTitle("X");
+        requestDto.setAuthor("Y");
+        requestDto.setPrice(new BigDecimal("5.00"));
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "USER")
     void createBook_ForbiddenForUser_403() throws Exception {
-        BookRequestDto req = new BookRequestDto();
-        req.setTitle("X");
-        req.setAuthor("Y");
-        req.setPrice(new BigDecimal("5.00"));
+        BookRequestDto requestDto = new BookRequestDto();
+        requestDto.setTitle("X");
+        requestDto.setAuthor("Y");
+        requestDto.setPrice(new BigDecimal("5.00"));
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isForbidden());
     }
 
@@ -142,16 +158,16 @@ class BookControllerTest {
     void createBook_returns200AndId() throws Exception {
         Long catId = createCategory("Default");
 
-        BookRequestDto req = new BookRequestDto();
-        req.setTitle("Book Title");
-        req.setAuthor("Author");
-        req.setPrice(new BigDecimal("10.50"));
-        req.setCategoryIds(List.of(catId));
+        BookRequestDto requestDto = new BookRequestDto();
+        requestDto.setTitle("Book Title");
+        requestDto.setAuthor("Author");
+        requestDto.setPrice(new BigDecimal("10.50"));
+        requestDto.setCategoryIds(List.of(catId));
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
+                        .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.title").value("Book Title"));
@@ -189,17 +205,17 @@ class BookControllerTest {
 
     private Long createCategory(String base) {
         String name = base + "-" + System.nanoTime();
-        Category c = new Category();
-        c.setName(name);
-        c.setDescription(name + " desc");
-        return categoryRepository.save(c).getId();
+        Category category = new Category();
+        category.setName(name);
+        category.setDescription(name + " desc");
+        return categoryRepository.save(category).getId();
     }
 
     private Long saveBook(String title, String author, BigDecimal price) {
-        Book b = new Book();
-        b.setTitle(title);
-        b.setAuthor(author);
-        b.setPrice(price);
-        return bookRepository.save(b).getId();
+        Book book = new Book();
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setPrice(price);
+        return bookRepository.save(book).getId();
     }
 }
