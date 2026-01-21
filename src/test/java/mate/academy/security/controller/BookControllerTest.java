@@ -3,13 +3,8 @@ package mate.academy.security.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.util.List;
-import mate.academy.security.dto.BookDto;
 import mate.academy.security.dto.BookRequestDto;
-import mate.academy.security.model.Book;
-import mate.academy.security.model.Category;
-import mate.academy.security.repository.BookRepository;
-import mate.academy.security.repository.CategoryRepository;
-import org.junit.jupiter.api.AfterEach;
+import mate.academy.security.util.TestUtil;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -17,83 +12,73 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.hamcrest.Matchers.blankOrNullString;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.hamcrest.Matchers.*;
-
-
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 class BookControllerTest {
 
-    @Autowired MockMvc mockMvc;
-    @Autowired ObjectMapper objectMapper;
-    @Autowired BookRepository bookRepository;
-    @Autowired CategoryRepository categoryRepository;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @AfterEach
-    void clean() {
-        bookRepository.deleteAll();
-        categoryRepository.deleteAll();
-    }
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void createBook_Valid_Returns200AndReturnsExpectedDto() throws Exception {
-        Category category = new Category();
-        category.setName("Default");
-        category.setDescription("Test");
-        Category savedCat = categoryRepository.save(category);
+    @Sql(scripts = {
+            "classpath:database/clear-db.sql",
+            "classpath:database/category/add-one-category.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+    void createBook_Valid_Returns201AndReturnsExpectedDto() throws Exception {
+        BookRequestDto bookRequestDto = TestUtil.bookRequestDto(
+                "Book Title",
+                "Author",
+                null,
+                new BigDecimal("10.50"),
+                null,
+                List.of(1L)
+        );
 
-        BookRequestDto bookRequestDto = new BookRequestDto();
-        bookRequestDto.setTitle("Book Title");
-        bookRequestDto.setAuthor("Author");
-        bookRequestDto.setPrice(new BigDecimal("10.50"));
-        bookRequestDto.setCategoryIds(List.of(savedCat.getId()));
-
-        MvcResult mvcResult = mockMvc.perform(post("/api/books")
+        mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(bookRequestDto)))
-                .andExpect(status().isOk())
-                .andReturn();
-
-        BookDto actual = objectMapper.readValue(mvcResult.getResponse().getContentAsString(), BookDto.class);
-
-        BookDto expected = new BookDto();
-        expected.setTitle("Book Title");
-        expected.setAuthor("Author");
-        expected.setDescription(null);
-        expected.setIsbn(null);
-        expected.setPrice(new BigDecimal("10.50"));
-        expected.setCategoryIds(List.of());
-
-        assertNotNull(actual.getId());
-
-        actual.setId(null);
-        expected.setId(null);
-
-        assertEquals(expected, actual);
+                .andExpect(status().isCreated())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.title").value("Book Title"))
+                .andExpect(jsonPath("$.author").value("Author"))
+                .andExpect(jsonPath("$.price").value(10.50));
     }
-
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    @Sql(scripts = "classpath:database/clear-db.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createBook_Invalid_400() throws Exception {
-        BookRequestDto notValidDto = new BookRequestDto();
-        notValidDto.setTitle("");
-        notValidDto.setAuthor("");
-        notValidDto.setPrice(new BigDecimal("-1"));
+        BookRequestDto notValidDto = TestUtil.bookRequestDto(
+                "",
+                "",
+                null,
+                new BigDecimal("-1"),
+                null,
+                null
+        );
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
@@ -103,12 +88,17 @@ class BookControllerTest {
     }
 
     @Test
+    @Sql(scripts = "classpath:database/clear-db.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createBook_Unauthenticated_403() throws Exception {
-
-        BookRequestDto requestDto = new BookRequestDto();
-        requestDto.setTitle("X");
-        requestDto.setAuthor("Y");
-        requestDto.setPrice(new BigDecimal("5.00"));
+        BookRequestDto requestDto = TestUtil.bookRequestDto(
+                "X",
+                "Y",
+                null,
+                new BigDecimal("5.00"),
+                null,
+                List.of(1L)
+        );
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
@@ -119,11 +109,17 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
+    @Sql(scripts = "classpath:database/clear-db.sql",
+            executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createBook_ForbiddenForUser_403() throws Exception {
-        BookRequestDto requestDto = new BookRequestDto();
-        requestDto.setTitle("X");
-        requestDto.setAuthor("Y");
-        requestDto.setPrice(new BigDecimal("5.00"));
+        BookRequestDto requestDto = TestUtil.bookRequestDto(
+                "X",
+                "Y",
+                null,
+                new BigDecimal("5.00"),
+                null,
+                List.of(1L)
+        );
 
         mockMvc.perform(post("/api/books")
                         .with(csrf())
@@ -134,90 +130,71 @@ class BookControllerTest {
 
     @Test
     @WithMockUser(roles = "USER")
+    @Sql(scripts = {
+            "classpath:database/clear-db.sql",
+            "classpath:database/books/add-two-books.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllBooks_returns200AndList() throws Exception {
-        saveBook("DDD", "Evans", new BigDecimal("30.00"));
-        saveBook("Refactoring", "Fowler", new BigDecimal("27.50"));
-
         mockMvc.perform(get("/api/books"))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].title", not(blankOrNullString())));
     }
 
     @Test
     @WithMockUser(roles = "USER")
+    @Sql(scripts = {
+            "classpath:database/clear-db.sql",
+            "classpath:database/books/add-one-book.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getBookById_returns200AndBody() throws Exception {
-        Long id = saveBook("Clean Code", "Martin", new BigDecimal("25.99"));
-
-        mockMvc.perform(get("/api/books/{id}", id))
+        mockMvc.perform(get("/api/books/{id}", 10L))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("Clean Code"))
                 .andExpect(jsonPath("$.author").value("Martin"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void createBook_returns200AndId() throws Exception {
-        Long catId = createCategory("Default");
-
-        BookRequestDto requestDto = new BookRequestDto();
-        requestDto.setTitle("Book Title");
-        requestDto.setAuthor("Author");
-        requestDto.setPrice(new BigDecimal("10.50"));
-        requestDto.setCategoryIds(List.of(catId));
-
-        mockMvc.perform(post("/api/books")
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").isNumber())
-                .andExpect(jsonPath("$.title").value("Book Title"));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
+    @Sql(scripts = {
+            "classpath:database/clear-db.sql",
+            "classpath:database/category/add-one-category.sql",
+            "classpath:database/books/add-one-book.sql",
+            "classpath:database/books/link-book-to-category.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateBook_returns200AndUpdatedBody() throws Exception {
-        Long id = saveBook("Old", "A", new BigDecimal("10.00"));
-        Long catId = createCategory("Tech");
+        BookRequestDto update = TestUtil.bookRequestDto(
+                "New",
+                "Martin",
+                null,
+                new BigDecimal("15.00"),
+                null,
+                List.of(1L)
+        );
 
-        BookRequestDto update = new BookRequestDto();
-        update.setTitle("New");
-        update.setAuthor("A");
-        update.setPrice(new BigDecimal("15.00"));
-        update.setCategoryIds(List.of(catId));
-
-        mockMvc.perform(put("/api/books/{id}", id)
+        mockMvc.perform(put("/api/books/{id}", 10L)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(update)))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(10))
                 .andExpect(jsonPath("$.title").value("New"))
+                .andExpect(jsonPath("$.author").value("Martin"))
                 .andExpect(jsonPath("$.price").value(15.00));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
+    @Sql(scripts = {
+            "classpath:database/clear-db.sql",
+            "classpath:database/books/add-one-book.sql"
+    }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteBook_returns200() throws Exception {
-        Long id = saveBook("Tmp", "B", new BigDecimal("9.00"));
-
-        mockMvc.perform(delete("/api/books/{id}", id).with(csrf()))
+        mockMvc.perform(delete("/api/books/{id}", 10L).with(csrf()))
                 .andExpect(status().isOk());
-    }
-
-    private Long createCategory(String base) {
-        String name = base + "-" + System.nanoTime();
-        Category category = new Category();
-        category.setName(name);
-        category.setDescription(name + " desc");
-        return categoryRepository.save(category).getId();
-    }
-
-    private Long saveBook(String title, String author, BigDecimal price) {
-        Book book = new Book();
-        book.setTitle(title);
-        book.setAuthor(author);
-        book.setPrice(price);
-        return bookRepository.save(book).getId();
     }
 }

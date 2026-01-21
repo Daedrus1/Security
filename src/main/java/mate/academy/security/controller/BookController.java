@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.BookDto;
 import mate.academy.security.dto.BookRequestDto;
 import mate.academy.security.service.BookService;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,6 +29,7 @@ public class BookController {
         return bookService.findById(id);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public BookDto createBook(@Valid @RequestBody BookRequestDto bookRequestDto) {

@@ -1,2 +1,2 @@
-INSERT INTO books (id, title, author, isbn, description, price, is_deleted)
-VALUES (5, 'Title', 'Author', 'isbn', 'desc', 10.00, false);
+INSERT INTO books (id, title, author, price, description, isbn)
+VALUES (10, 'Clean Code', 'Martin', 25.99, 'desc', 'isbn');
