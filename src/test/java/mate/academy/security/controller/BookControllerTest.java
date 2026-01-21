@@ -50,21 +50,21 @@ class BookControllerTest {
     @Test
     @WithMockUser(roles = "ADMIN")
     void createBook_Valid_Returns200AndReturnsExpectedDto() throws Exception {
-        Category cat = new Category();
-        cat.setName("Default");
-        cat.setDescription("Test");
-        Category savedCat = categoryRepository.save(cat);
+        Category category = new Category();
+        category.setName("Default");
+        category.setDescription("Test");
+        Category savedCat = categoryRepository.save(category);
 
-        BookRequestDto req = new BookRequestDto();
-        req.setTitle("Book Title");
-        req.setAuthor("Author");
-        req.setPrice(new BigDecimal("10.50"));
-        req.setCategoryIds(List.of(savedCat.getId()));
+        BookRequestDto bookRequestDto = new BookRequestDto();
+        bookRequestDto.setTitle("Book Title");
+        bookRequestDto.setAuthor("Author");
+        bookRequestDto.setPrice(new BigDecimal("10.50"));
+        bookRequestDto.setCategoryIds(List.of(savedCat.getId()));
 
         MvcResult mvcResult = mockMvc.perform(post("/api/books")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
+                        .content(objectMapper.writeValueAsString(bookRequestDto)))
                 .andExpect(status().isOk())
                 .andReturn();
 
