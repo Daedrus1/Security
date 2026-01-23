@@ -55,10 +55,10 @@ class CategoryControllerTest {
     @WithMockUser(roles = "USER")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/category/add-one-category.sql"
+            "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getCategoryById_ok() throws Exception {
-        CategoryDto expected = TestUtil.categoryDto(1L, "Fiction", "Desc");
+        CategoryDto expected = TestUtil.categoryDto(1L, "Fiction", "Desc1");
 
         String json = mockMvc.perform(get("/categories/{id}", 1L))
                 .andExpect(status().isOk())
@@ -95,7 +95,7 @@ class CategoryControllerTest {
     @WithMockUser(roles = "ADMIN")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/category/add-one-category.sql"
+            "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateCategory_ok() throws Exception {
         CategoryRequestDto requestDto = TestUtil.categoryRequestDto("Updated", "Upd desc");
@@ -116,7 +116,7 @@ class CategoryControllerTest {
     @WithMockUser(roles = "ADMIN")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/category/add-one-category.sql"
+            "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategory_ok() throws Exception {
         mockMvc.perform(delete("/categories/{id}", 1L)

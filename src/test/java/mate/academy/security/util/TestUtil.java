@@ -5,6 +5,8 @@ import java.util.List;
 import mate.academy.security.dto.BookRequestDto;
 import mate.academy.security.dto.CategoryDto;
 import mate.academy.security.dto.CategoryRequestDto;
+import mate.academy.security.model.Book;
+import mate.academy.security.model.Category;
 
 public class TestUtil {
     private TestUtil() {
@@ -35,5 +37,33 @@ public class TestUtil {
         dto.setIsbn(isbn);
         dto.setCategoryIds(categoryIds);
         return dto;
+    }
+    public static Category categoryEntity(String name, String description) {
+        Category category = new Category();
+        category.setName(name);
+        category.setDescription(description);
+        return category;
+    }
+
+    public static Book bookEntity(String title, String author, BigDecimal price, Category category) {
+        Book book = new Book();
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setPrice(price);
+        if (category != null) {
+            book.getCategories().add(category);
+        }
+        return book;
+    }
+
+    public static Book bookEntity(String title, String author, BigDecimal price, List<Category> categories) {
+        Book book = new Book();
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setPrice(price);
+        if (categories != null) {
+            book.getCategories().addAll(categories);
+        }
+        return book;
     }
 }

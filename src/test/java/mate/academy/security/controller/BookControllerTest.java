@@ -42,7 +42,7 @@ class BookControllerTest {
     @WithMockUser(roles = "ADMIN")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/category/add-one-category.sql"
+            "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void createBook_Valid_Returns201AndReturnsExpectedDto() throws Exception {
         BookRequestDto bookRequestDto = TestUtil.bookRequestDto(
@@ -146,23 +146,23 @@ class BookControllerTest {
     @WithMockUser(roles = "USER")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/books/add-one-book.sql"
+            "classpath:database/books/add-two-books.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getBookById_returns200AndBody() throws Exception {
         mockMvc.perform(get("/api/books/{id}", 10L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(10))
-                .andExpect(jsonPath("$.title").value("Clean Code"))
-                .andExpect(jsonPath("$.author").value("Martin"));
+                .andExpect(jsonPath("$.title").value("DDD"))
+                .andExpect(jsonPath("$.author").value("Evans"));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/category/add-one-category.sql",
-            "classpath:database/books/add-one-book.sql",
+            "classpath:database/category/add-two-categories.sql",
+            "classpath:database/books/add-two-books.sql",
             "classpath:database/books/link-book-to-category.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void updateBook_returns200AndUpdatedBody() throws Exception {
@@ -191,7 +191,7 @@ class BookControllerTest {
     @WithMockUser(roles = "ADMIN")
     @Sql(scripts = {
             "classpath:database/clear-db.sql",
-            "classpath:database/books/add-one-book.sql"
+            "classpath:database/books/add-two-books.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteBook_returns200() throws Exception {
         mockMvc.perform(delete("/api/books/{id}", 10L).with(csrf()))
