@@ -1,0 +1,60 @@
+databaseChangeLog:
+  - logicalFilePath: db/changelog/db.changelog/0009-create-cart-items-table.yaml
+
+  - changeSet:
+      id: 0009-create-cart-items-table
+      author: pavlo
+      preConditions:
+        - onFail: HALT
+        - tableExists:
+            tableName: shopping_carts
+        - tableExists:
+            tableName: books
+      changes:
+        - createTable:
+            tableName: cart_items
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_cart_items
+              - column:
+                  name: shopping_cart_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: book_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: INT
+                  constraints:
+                    nullable: false
+        - addForeignKeyConstraint:
+            baseTableName: cart_items
+            baseColumnNames: shopping_cart_id
+            constraintName: fk_cart_item_cart
+            referencedTableName: shopping_carts
+            referencedColumnNames: id
+        - addForeignKeyConstraint:
+            baseTableName: cart_items
+            baseColumnNames: book_id
+            constraintName: fk_cart_item_book
+            referencedTableName: books
+            referencedColumnNames: id
+        - addUniqueConstraint:
+            tableName: cart_items
+            columnNames: shopping_cart_id, book_id
+            constraintName: uk_cart_item_cart_book
+        - createIndex:
+            tableName: cart_items
+            indexName: idx_cart_items_cart
+            columns:
+              - column:
+                  name: shopping_cart_id

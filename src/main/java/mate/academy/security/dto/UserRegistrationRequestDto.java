@@ -3,8 +3,10 @@ package mate.academy.security.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
+import mate.academy.security.validation.FieldMatch;
 
 @Data
+@FieldMatch(first = "password", second = "confirmPassword", message = "Passwords must match")
 public class UserRegistrationRequestDto {
     @Email
     private String email;
