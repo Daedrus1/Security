@@ -23,6 +23,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private static final String TOKEN_HEADER = "Bearer ";
 
+
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,
@@ -39,6 +40,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
+        System.out.println("AUTH = " + SecurityContextHolder.getContext().getAuthentication());
+
         filterChain.doFilter(request, response);
     }
 
