@@ -46,10 +46,11 @@ databaseChangeLog:
 
               - column:
                   name: is_deleted
-                  type: TINYINT
-                  defaultValueNumeric: 0
+                  type: BOOLEAN
+                  defaultValueBoolean: false
                   constraints:
                     nullable: false
+
 
         - addForeignKeyConstraint:
             baseTableName: orders

@@ -29,11 +29,17 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     public ShoppingCartDto getShoppingCart(Long userId) {
         ShoppingCart cart = shoppingCartRepository.findByUserId(userId)
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Shopping cart not found for user id " + userId
-                ));
+                .orElseGet(() -> {
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new EntityNotFoundException(
+                                    "User not found with id " + userId
+                            ));
+                    return createCart(user);
+                });
+
         return shoppingCartMapper.toShoppingCartDto(cart);
     }
+
 
     @Override
     public ShoppingCartDto addItemToCart(Long userId, CartItemRequestDto cartItemRequestDto) {

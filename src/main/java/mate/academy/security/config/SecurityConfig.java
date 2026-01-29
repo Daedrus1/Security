@@ -44,7 +44,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
-                                "/h2-console/**"          // ✅ добавь
+                                "/h2-console/**",
+                                "/error"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/books/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("USER", "ADMIN")
