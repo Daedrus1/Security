@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.BookDtoWithoutCategoryIds;
 import mate.academy.security.dto.CategoryDto;
 import mate.academy.security.dto.CategoryRequestDto;
+import mate.academy.security.dto.PageResponse;
 import mate.academy.security.service.CategoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -26,8 +27,18 @@ public class CategoryController {
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Get all categories (paged)")
     @GetMapping
-    public Page<CategoryDto> getAllCategories(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        return categoryService.findAll(pageable);
+    public PageResponse<CategoryDto> getAllCategories(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable
+    ) {
+        var page = categoryService.findAll(pageable);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
     @PreAuthorize("hasAnyRole('USER','ADMIN')")
