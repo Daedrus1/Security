@@ -38,7 +38,7 @@ class CategoryControllerTest {
             "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void getAllCategories_ok() throws Exception {
-        mockMvc.perform(get("/categories")
+        mockMvc.perform(get("/api/categories")
                         .param("page", "0")
                         .param("size", "20"))
                 .andExpect(status().isOk())
@@ -60,7 +60,7 @@ class CategoryControllerTest {
     void getCategoryById_ok() throws Exception {
         CategoryDto expected = TestUtil.categoryDto(1L, "Fiction", "Desc1");
 
-        String json = mockMvc.perform(get("/categories/{id}", 1L))
+        String json = mockMvc.perform(get("/api/categories/{id}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andReturn()
@@ -79,7 +79,7 @@ class CategoryControllerTest {
     void createCategory_created() throws Exception {
         CategoryRequestDto requestDto = TestUtil.categoryRequestDto("New", "New desc");
 
-        mockMvc.perform(post("/categories")
+        mockMvc.perform(post("/api/categories")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -100,7 +100,7 @@ class CategoryControllerTest {
     void updateCategory_ok() throws Exception {
         CategoryRequestDto requestDto = TestUtil.categoryRequestDto("Updated", "Upd desc");
 
-        mockMvc.perform(put("/categories/{id}", 1L)
+        mockMvc.perform(put("/api/categories/{id}", 1L)
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
@@ -119,7 +119,7 @@ class CategoryControllerTest {
             "classpath:database/category/add-two-categories.sql"
     }, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
     void deleteCategory_ok() throws Exception {
-        mockMvc.perform(delete("/categories/{id}", 1L)
+        mockMvc.perform(delete("/api/categories/{id}", 1L)
                         .with(csrf()))
                 .andExpect(status().isOk());
     }

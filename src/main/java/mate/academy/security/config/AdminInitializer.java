@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.security.model.User;
 import mate.academy.security.repository.UserRepository;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+@Profile("!test")
 @Component
 @RequiredArgsConstructor
 public class AdminInitializer implements CommandLineRunner {
