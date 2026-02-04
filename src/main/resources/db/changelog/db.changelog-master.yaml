@@ -3,3 +3,27 @@ databaseChangeLog:
 
   - include:
       file: db/changelog/0001-create-users-table.yaml
+  - include:
+      file: db/changelog/0002-add-is-deleted-to-users-table.yml
+  - include:
+      file: db/changelog/0003-create-books-table.yaml
+  - include:
+      file: db/changelog/0004-create-roles-table.yml
+  - include:
+      file: db/changelog/0005-create-users-roles-table.yml
+  - include:
+      file: db/changelog/0006-create-category-table.yaml
+  - include:
+      file: db/changelog/0007-create-book-category-table.yaml
+  - include:
+      file: db/changelog/0008-create-shopping-carts-table.yaml
+  - include:
+      file: db/changelog/0009-create-cart-items-table.yaml
+  - include:
+      file: db/changelog/0010-create-orders-table.yaml
+  - include:
+      file: db/changelog/0011-create-order-items-table.yaml
+  - include:
+      file: db/changelog/ 0012-seed-admin-user.yaml
+  - include:
+      file: db/changelog/0013-fix-category-is-deleted.yaml

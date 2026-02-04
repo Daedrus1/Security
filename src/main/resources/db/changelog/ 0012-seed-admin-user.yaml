@@ -1,0 +1,46 @@
+databaseChangeLog:
+  - changeSet:
+      id: 0012-create-admin
+      author: pavlo
+      changes:
+        - sql:
+            sql: |
+              INSERT INTO roles (name)
+              SELECT 'ROLE_ADMIN'
+              WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'ROLE_ADMIN');
+
+              INSERT INTO roles (name)
+              SELECT 'ROLE_USER'
+              WHERE NOT EXISTS (SELECT 1 FROM roles WHERE name = 'ROLE_USER');
+
+        - insert:
+            tableName: users
+            columns:
+              - column:
+                  name: email
+                  value: admin@security.com
+              - column:
+                  name: first_name
+                  value: Admin
+              - column:
+                  name: last_name
+                  value: User
+              - column:
+                  name: shipping_address
+                  value: Admin address
+              - column:
+                  name: password
+                  value: "temp"
+              - column:
+                  name: is_deleted
+                  valueBoolean: false
+
+        - insert:
+            tableName: users_roles
+            columns:
+              - column:
+                  name: user_id
+                  valueComputed: "(SELECT id FROM users WHERE email = 'admin@security.com')"
+              - column:
+                  name: role_id
+                  valueComputed: "(SELECT id FROM roles WHERE name = 'ROLE_ADMIN')"
