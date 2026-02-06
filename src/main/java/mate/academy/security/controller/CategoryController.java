@@ -8,26 +8,40 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.security.dto.BookDtoWithoutCategoryIds;
 import mate.academy.security.dto.CategoryDto;
 import mate.academy.security.dto.CategoryRequestDto;
+import mate.academy.security.dto.PageResponse;
 import mate.academy.security.service.CategoryService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("categories")
+@RequestMapping("/api/categories")
 @RequiredArgsConstructor
 @Tag(name = "Categories", description = "Endpoints for managing book categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Get all categories (paged)")
     @GetMapping
-    public Page<CategoryDto> getAllCategories(@PageableDefault(size = 20, sort = "id") Pageable pageable) {
-        return categoryService.findAll(pageable);
+    public PageResponse<CategoryDto> getAllCategories(
+            @PageableDefault(size = 20, sort = "id") Pageable pageable
+    ) {
+        var page = categoryService.findAll(pageable);
+
+        return new PageResponse<>(
+                page.getContent(),
+                page.getNumber(),
+                page.getSize(),
+                page.getTotalElements(),
+                page.getTotalPages()
+        );
     }
 
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(summary = "Get category by id")
     @GetMapping("/{id}")
     public CategoryDto getCategoryById(@PathVariable Long id) {

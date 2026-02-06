@@ -30,38 +30,36 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http,
                                            JwtAuthenticationFilter jwtFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/h2-console/**")
+                        .disable()
+                )
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.sameOrigin())
+                )
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/auth/register",
-                                "/api/auth/login",
-                                "/v3/api-docs",
-                                "/v3/api-docs/**",
-                                "/swagger-ui.html",
+                                "/auth/registration",
+                                "/auth/login",
                                 "/swagger-ui/**",
-                                "/swagger-resources/**",
-                                "/webjars/**"
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/h2-console/**",
+                                "/error"
                         ).permitAll()
-
-                        .requestMatchers(HttpMethod.GET, "/api/books/**", "/api/categories/**")
-                        .hasAnyRole("USER", "ADMIN")
-
-                        .requestMatchers("/api/cart/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/api/cart/items/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/api/cart/items/**").hasRole("USER")
-
-                        .requestMatchers(HttpMethod.GET, "/api/orders/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/api/orders/**").hasRole("USER")
-                        .requestMatchers(HttpMethod.PATCH, "/api/orders/**").hasRole("ADMIN")
-
+                        .requestMatchers(HttpMethod.GET, "/api/books/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/categories/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,  "/api/books/**", "/api/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE,"/api/books/**", "/api/categories/**").hasRole("ADMIN")
-
                         .anyRequest().authenticated()
                 )
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
+
 }

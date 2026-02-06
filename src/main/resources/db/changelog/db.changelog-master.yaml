@@ -23,3 +23,7 @@ databaseChangeLog:
       file: db/changelog/0010-create-orders-table.yaml
   - include:
       file: db/changelog/0011-create-order-items-table.yaml
+  - include:
+      file: db/changelog/ 0012-seed-admin-user.yaml
+  - include:
+      file: db/changelog/0013-fix-category-is-deleted.yaml
